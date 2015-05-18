@@ -191,8 +191,13 @@ app.post '/i18n/submit', (req, res) ->
                 prOpts = { title, body, head, base: baseBranch }
                 repo.createPr prOpts, (e, b, h) ->
                   return res.status(400).json messages: ["createPr: #{e.message}"] if e?
-                  req.session.i18n = null
-                  res.json { url: b.html_url }
+
+                  issue = client.issue req.body.repo, b.number
+                  issue.update labels: ['i18n'], (e, b) ->
+                    return res.status(400).json messages: ["update issue: #{e.message}"] if e?
+
+                    req.session.i18n = null
+                    res.json { url: b.html_url }
 
 app.listen process.env.PORT || 3000
 
